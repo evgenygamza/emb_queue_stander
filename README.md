@@ -14,13 +14,16 @@ PASSWORD = "password from your email box"
 API_KEY = "123qwe456RTy789uiO0"
 ```
 
-# 3. install requirements.txt
+# 3. Install requirements.txt
 
 ``` python
 pip install -r requirements.txt
 ```
 
-# 4. shedule task in cron
+# 4. Shedule task in cron
 ``` bash
 57 11 * * * /path/to/python /path/to/file/update_queue_position.py
 ```
+
+# 5. Configure telegram bot reminder
+[t.me/tbilisi_queue_bot](https://t.me/tbilisi_queue_bot)

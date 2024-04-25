@@ -1,2 +1,4 @@
+2captcha_python==1.2.4
+python-telegram-bot==21.1
 selenium==4.19.0
-twocaptcha==0.0.1
+TwoCaptcha==0.0.1
