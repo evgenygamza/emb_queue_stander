@@ -5,3 +5,4 @@
 /chromedriver
 /.tox
 user_consts.py
+.DS_Store
