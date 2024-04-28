@@ -1,8 +1,6 @@
-import asyncio
 import user_consts
 
 from time import sleep
-from datetime import datetime
 from twocaptcha import TwoCaptcha
 from selenium import webdriver
 from selenium.webdriver import ActionChains
@@ -11,7 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.select import Select
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from locators import *
-# from reminder_bot_ import send_message
+
 
 class Midpass:
     def __init__(self) -> None:
@@ -30,7 +28,6 @@ class Midpass:
         sleep(1)
 
         img_captcha = self.find(*CaptchaLocators.IMG_CAPTCHA)
-
         captcha_image_base64 = img_captcha.screenshot_as_base64
         solver = TwoCaptcha(user_consts.API_KEY)
         result = solver.normal(captcha_image_base64, hintText="x12345", minLen=6, maxLen = 6)
@@ -54,16 +51,22 @@ class Midpass:
 
         EC.invisibility_of_element(LoginPageLocators.LOGIN_ERROR)
 
-        try:
-            WebDriverWait(self.driver, 10).until(EC.url_to_be("https://q.midpass.ru/ru/Home/Index"))
-            return True, "Login succeed"
-        except TimeoutException:
-            try:
-                error_element = WebDriverWait(self.driver, 3).until(
-                    EC.presence_of_element_located(LoginPageLocators.LOGIN_ERROR))
-                return False, error_element.text
-            except:
-                return False, "Login failed"
+        if self.driver.current_url == "https://q.midpass.ru/ru/Home/Index":
+            return True, "Авторизация прошла успешно"
+        
+        error_element = WebDriverWait(self.driver, 3).until(
+            EC.presence_of_element_located(LoginPageLocators.LOGIN_ERROR))
+        
+        if error_element.is_displayed():
+            return False, error_element.text
+
+        if self.driver.current_url == "https://q.midpass.ru/ru/Account/BanPage":
+            return False, "Система решила, что я бот. На почту пришел новый пароль. \n"\
+                            "Пришлите его мне с помощью команды /password \n"\
+                            "и я попытаюсь снова через пару часов"
+
+        return False, "Авторизация не удалась при невыясненных обстоятельствах"
+
 
     def go_to_waiting_list_and_check_position(self) -> str:
         # main page
@@ -81,7 +84,7 @@ class Midpass:
         self.script.scroll_to_element(btn_confirm_appointment).scroll_by_amount(0, 600).move_to_element(btn_confirm_appointment).perform()
         btn_class = btn_confirm_appointment.get_attribute("class")
         if "l-btn-disabled" in btn_class:
-            return "Кнопка подтверждения неактивна. На сегодня уже подтверждено"
+            return "Кнопка подтверждения неактивна. Сегодня уже подтверждено"
         try:
             self.script.click(btn_confirm_appointment).perform()
             # confirmation window
@@ -98,6 +101,8 @@ class Midpass:
 
 if __name__ == "__main__":
     script = Midpass()
-    print(script.login_private_person(mail=user_consts.MAIL, password=user_consts.PASSWORD))
+
+    login = script.login_private_person(mail=user_consts.MAIL, password=user_consts.PASSWORD)
+    exit() if not login[0] else None
     print(script.go_to_waiting_list_and_check_position())
     print(script.update_queue_position())
