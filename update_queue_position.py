@@ -7,13 +7,17 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.select import Select
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.chrome.options import Options
 from locators import *
 
 
 class Midpass:
     def __init__(self) -> None:
-        self.driver = webdriver.Chrome()
+        self.chrome_options = Options()
+        self.chrome_options.add_argument("--headless")
+        self.driver = webdriver.Chrome(self.chrome_options)
+        self.driver.set_window_size(1024, 768)
         self.driver.implicitly_wait(15)
         self.script = ActionChains(self.driver)
 
@@ -29,9 +33,10 @@ class Midpass:
 
         img_captcha = self.find(*CaptchaLocators.IMG_CAPTCHA)
         captcha_image_base64 = img_captcha.screenshot_as_base64
+        # img_captcha.screenshot("ss.png")
         solver = TwoCaptcha(user_consts.API_KEY)
         result = solver.normal(captcha_image_base64, hintText="x12345", minLen=6, maxLen = 6)
-
+        # print("result: ", result["code"])
         return result["code"]
 
     def login_private_person(self, mail: str, password: str) -> tuple:
@@ -103,6 +108,8 @@ if __name__ == "__main__":
     script = Midpass()
 
     login = script.login_private_person(mail=user_consts.MAIL, password=user_consts.PASSWORD)
-    exit() if not login[0] else None
+    if not login[0]:
+        print(login[1])
+        exit()
     print(script.go_to_waiting_list_and_check_position())
     print(script.update_queue_position())
