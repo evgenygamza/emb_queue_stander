@@ -4,5 +4,5 @@
 /trash
 /chromedriver
 /.tox
-user_consts.py
 .DS_Store
+user_consts.py

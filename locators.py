@@ -6,7 +6,7 @@ class CaptchaLocators:
     INPUT_CAPTCHA = (By.ID, "Captcha")
     INPUT_CAPTCHA_OUTSTANDING = (By.ID, "captchaValue")
     BTN_CONFIRM = (By.XPATH, "//span[text()='Подтвердить']")
-    BTN_OK = (By.XPATH, "/html/body/div[9]/div/div[3]/a/span/span")
+    BTN_OK = (By.XPATH, "//span[text()='Ок']")
     # CAPTCHA_ERROR = (By.ID, "captchaError")
 
 
@@ -17,6 +17,7 @@ class LoginPageLocators:
     INPUT_PASSWORD = (By.ID, "Password")
     BTN_LOGIN = (By.XPATH, "//button[text()='Войти']")
     LOGIN_ERROR = (By.CSS_SELECTOR, "span.field-validation-error")
+    BOT_SUSPECTION = (By.XPATH, "//div[text()='I_think_you_are_bot']")
 
 
 class MainPageLocators:
