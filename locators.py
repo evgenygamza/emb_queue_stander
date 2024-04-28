@@ -7,6 +7,8 @@ class CaptchaLocators:
     INPUT_CAPTCHA_OUTSTANDING = (By.ID, "captchaValue")
     BTN_CONFIRM = (By.XPATH, "//span[text()='Подтвердить']")
     BTN_OK = (By.XPATH, "//span[text()='Ок']")
+    DIV_CAPTCHA = (By.ID, "ourCaptchaDiv")
+    FORM_CAPTCHA = (By.ID, "FormLogOn")
     # CAPTCHA_ERROR = (By.ID, "captchaError")
 
 
