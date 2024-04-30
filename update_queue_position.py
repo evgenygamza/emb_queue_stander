@@ -16,6 +16,12 @@ class Midpass:
     def __init__(self) -> None:
         self.chrome_options = Options()
         self.chrome_options.add_argument("--headless")
+        self.chrome_options.add_argument("disable-infobars")
+        self.chrome_options.add_argument("--disable-extensions")
+        self.chrome_options.add_argument("--disable-gpu")
+        self.chrome_options.add_argument("--disable-dev-shm-usage")
+        self.chrome_options.add_argument("--no-sandbox")
+
         self.driver = webdriver.Chrome(self.chrome_options)
         self.driver.set_window_size(1024, 868)
         self.driver.implicitly_wait(15)
