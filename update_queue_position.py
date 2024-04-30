@@ -1,11 +1,11 @@
 import user_consts
+import urls
 
 from time import sleep
 from twocaptcha import TwoCaptcha
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.select import Select
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
@@ -17,7 +17,7 @@ class Midpass:
         self.chrome_options = Options()
         self.chrome_options.add_argument("--headless")
         self.driver = webdriver.Chrome(self.chrome_options)
-        self.driver.set_window_size(1024, 768)
+        self.driver.set_window_size(1024, 868)
         self.driver.implicitly_wait(15)
         self.script = ActionChains(self.driver)
 
@@ -40,7 +40,7 @@ class Midpass:
         return result["code"]
 
     def login_private_person(self, mail: str, password: str) -> tuple:
-        self.driver.get("https://q.midpass.ru/ru/Account/PrivatePersonLogOn")
+        self.driver.get(urls.LOGON_PAGE)
 
         # login page
         Select(self.find(*LoginPageLocators.SELECT_COUNTRY)).select_by_visible_text("Грузия")
@@ -56,22 +56,20 @@ class Midpass:
 
         EC.invisibility_of_element(LoginPageLocators.LOGIN_ERROR)
 
-        if self.driver.current_url == "https://q.midpass.ru/ru/Home/Index":
+        if self.driver.current_url == urls.INDEX_PAGE:
             return True, "Авторизация прошла успешно"
         
-        error_element = WebDriverWait(self.driver, 3).until(
-            EC.presence_of_element_located(LoginPageLocators.LOGIN_ERROR))
+        error_elements = self.driver.find_elements(*LoginPageLocators.LOGIN_ERROR)
         
-        if error_element.is_displayed():
-            return False, error_element.text
+        if error_elements:
+            return False, error_elements[0].text
 
-        if self.driver.current_url == "https://q.midpass.ru/ru/Account/BanPage":
+        if self.driver.current_url == urls.BAN_PAGE:
             return False, "Система решила, что я бот. На почту пришел новый пароль. \n"\
                             "Пришлите его мне с помощью команды /password \n"\
                             "и я попытаюсь снова через пару часов"
 
         return False, "Авторизация не удалась при невыясненных обстоятельствах"
-
 
     def go_to_waiting_list_and_check_position(self) -> str:
         # main page
@@ -95,7 +93,7 @@ class Midpass:
             # confirmation window
             self.find(*CaptchaLocators.INPUT_CAPTCHA_OUTSTANDING).send_keys(self.solve_captcha())
             self.find(*CaptchaLocators.BTN_CONFIRM).click()
-            sleep(3)
+            sleep(6)
             self.find(*CaptchaLocators.BTN_OK).click()  # fixme
             return "Заявка подтверждена. До завтра можно не переживать"
         except:
