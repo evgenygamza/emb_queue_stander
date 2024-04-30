@@ -1,5 +1,6 @@
 import user_consts
 import urls
+import os
 
 from time import sleep
 from twocaptcha import TwoCaptcha
@@ -16,13 +17,10 @@ class Midpass:
     def __init__(self) -> None:
         self.chrome_options = Options()
         self.chrome_options.add_argument("--headless")
-        self.chrome_options.add_argument("disable-infobars")
         self.chrome_options.add_argument("--disable-extensions")
         self.chrome_options.add_argument("--disable-gpu")
         self.chrome_options.add_argument("--disable-dev-shm-usage")
-        self.chrome_options.add_argument("--no-sandbox")
-
-        self.driver = webdriver.Chrome(self.chrome_options)
+        self.driver = webdriver.Remote(command_executor=os.getenv("SELENIUM_URL"), options=self.chrome_options)
         self.driver.set_window_size(1024, 868)
         self.driver.implicitly_wait(15)
         self.script = ActionChains(self.driver)
@@ -111,9 +109,12 @@ class Midpass:
 if __name__ == "__main__":
     script = Midpass()
 
-    login = script.login_private_person(mail=user_consts.MAIL, password=user_consts.PASSWORD)
-    if not login[0]:
-        print(login[1])
-        exit()
-    print(script.go_to_waiting_list_and_check_position())
-    print(script.update_queue_position())
+    try:
+        login = script.login_private_person(mail=user_consts.MAIL, password=user_consts.PASSWORD)
+        if not login[0]:
+            print(login[1])
+            exit()
+        print(script.go_to_waiting_list_and_check_position())
+        print(script.update_queue_position())
+    finally:
+        script.driver.quit()
