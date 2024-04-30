@@ -21,7 +21,7 @@ jobs:
                 uses: docker/metadata-action@v5
                 with:
                     images: |
-                        name=${{ env.IMAGE_NAME }}
+                        name=${{ github.event.repository.name }}
                     tags: |
                         type=raw,value=${{ env.IMAGE_TAG }}
                         type=edge,prefix=${{ env.IMAGE_TAG }}-,branch=$repo.default_branch
