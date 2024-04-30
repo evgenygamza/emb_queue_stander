@@ -7,10 +7,6 @@ on:
 permissions:
     contents: read
     packages: write
-
-env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
-
 jobs:
     build-base:
         name: Build base image
@@ -27,8 +23,8 @@ jobs:
                     images: |
                         name=${{ env.IMAGE_NAME }}
                     tags: |
-                        type=ref,event=branch
-                        type=ref,event=pr
+                        type=raw,value=${{ env.IMAGE_TAG }}
+                        type=edge,prefix=${{ env.IMAGE_TAG }}-,branch=$repo.default_branch
             -
                 name: Login to GitHub Container Registry
                 uses: docker/login-action@v3
