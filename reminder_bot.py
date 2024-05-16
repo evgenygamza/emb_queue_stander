@@ -1,7 +1,10 @@
 import logging
-from datetime import datetime
+import time
+# from datetime i
+import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import apscheduler as sched
+import schedule
 
 from telegram import Update
 from telegram.ext import (filters, ApplicationBuilder, ContextTypes, CommandHandler, ConversationHandler,
@@ -16,6 +19,8 @@ logging.basicConfig(
 )
 
 GET_PASSWORD, GET_EMAIL = 0, 1
+
+
 # scheduler = AsyncIOScheduler()
 
 
@@ -116,17 +121,13 @@ async def delete_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(chat_id=CHAT_ID, text="Удалено")
 
 
-# @scheduler.scheduled_job('cron', id='reminder_msg', minute='*', jitter=1)
-# @scheduler.scheduled_job('cron', id='reminder_msg', hour=5, minute=30)
-# async def reminds(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#     # CHAT_ID = update.effective_chat.id
-#     # CHAT_ID = update.effective_chat.id
-#     with NeonConnect(dsn=DB_CONNECTION, chat_id=208605587) as db_client:
-#         chat_ids = db_client.fetch_user_info("chat_id")  # Замените на реальные идентификаторы
-#         await context.bot.send_message(chat_id=CHAT_ID, text="Думаю, пора обновить своё место в очереди.\n"
-#     #     # for chat_id in chat_ids:
-#     #         # await context.bot.send_message(chat_id=chat_id, text="Думаю, пора обновить своё место в очереди.\n"
-#                                                                  "Выполни команду /queue")
+# async def reminder(context: ContextTypes.DEFAULT_TYPE):
+async def reminder(context: ContextTypes.DEFAULT_TYPE):
+    CHAT_ID = "208605587"
+    message_text = ("Пора подтвердить место в очереди. \n"
+                    "Пожалуйста, отправь мне команду /queue")
+    time.sleep(1)
+    await context.bot.send_message(chat_id=CHAT_ID, text=message_text)
 
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -135,6 +136,9 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     application = ApplicationBuilder().token(BOT_TOKEN).build()
+    job_queue = application.job_queue
+
+    job_queue.run_daily(reminder, time=datetime.time(hour=8, minute=3))
 
     start_handler = CommandHandler('start', start)
     help_handler = CommandHandler('help', start)
@@ -153,18 +157,11 @@ def main():
     delete_handler = CommandHandler('delete', delete_user)
     echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
 
-    # application.job_queue.run_daily(reminds, time=datetime.strptime('16:29', '%H:%M').time(), days=(0, 1, 2, 3, 4))
-
     application.add_handlers([start_handler, help_handler, queue_update_handler, get_position_handler])
     application.add_handlers([new_password_handler, new_email_handler])
     application.add_handler(delete_handler)
     application.add_handler(echo_handler)
 
-    # scheduler = AsyncIOScheduler()
-    # scheduler.add_job(reminds, 'interval', seconds=5, args=[application.bot, None])
-    # scheduler.add_job(reminds, 'cron', minute='*', jitter=1)
-
-    # scheduler.start()
     application.run_polling()
 
 
