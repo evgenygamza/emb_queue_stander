@@ -1,10 +1,5 @@
 import logging
-import time
-# from datetime i
 import datetime
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-import apscheduler as sched
-import schedule
 
 from telegram import Update
 from telegram.ext import (filters, ApplicationBuilder, ContextTypes, CommandHandler, ConversationHandler,
@@ -44,26 +39,28 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def update_queue_position(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    CHAT_ID = update.effective_chat.id
+    chat_id = update.effective_chat.id
 
-    await context.bot.send_message(chat_id=CHAT_ID, text="Захожу в кабинет")
-    with NeonConnect(dsn=DB_CONNECTION, chat_id=CHAT_ID) as db_client:
+    await context.bot.send_message(chat_id=chat_id, text="Захожу в кабинет")
+    with NeonConnect(dsn=DB_CONNECTION, chat_id=chat_id) as db_client:
         user_info = db_client.fetch_user_info()
         script = Midpass()
         login_status = script.login_private_person(mail=user_info[1], password=user_info[2])
-        await context.bot.send_message(chat_id=CHAT_ID, text=f"{login_status[1]}")
+        await context.bot.send_message(chat_id=chat_id, text=f"{login_status[1]}")
         if not login_status[0]:
-            await context.bot.send_message(chat_id=CHAT_ID,
+            await context.bot.send_message(chat_id=chat_id,
                                            text=f"Авторизация по каким-то причинам не удалась. Давайте попробуем ещё")
+        elif login_status[0] == "banned":
+            context.job_queue.run_once(reminder, when=3600, chat_id=chat_id, name="banned_case")
 
         pstn = script.go_to_waiting_list_and_check_position()
-        await context.bot.send_message(chat_id=CHAT_ID, text=f"Текущее место в очереди: {pstn}")
+        await context.bot.send_message(chat_id=chat_id, text=f"Текущее место в очереди: {pstn}")
         db_client.update(position=pstn)
 
         if pstn < 100:
-            await context.bot.send_message(chat_id=CHAT_ID, text="Внимание! \n Осталось меньше ста человек")
+            await context.bot.send_message(chat_id=chat_id, text="Внимание! \n Осталось меньше ста человек")
         result_message = script.update_queue_position()
-        await context.bot.send_message(chat_id=CHAT_ID, text=result_message)
+        await context.bot.send_message(chat_id=chat_id, text=result_message)
 
 
 async def get_user_position(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -121,13 +118,18 @@ async def delete_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(chat_id=CHAT_ID, text="Удалено")
 
 
-# async def reminder(context: ContextTypes.DEFAULT_TYPE):
 async def reminder(context: ContextTypes.DEFAULT_TYPE):
-    CHAT_ID = "208605587"
+    job = context.job
     message_text = ("Пора подтвердить место в очереди. \n"
                     "Пожалуйста, отправь мне команду /queue")
-    time.sleep(1)
-    await context.bot.send_message(chat_id=CHAT_ID, text=message_text)
+    await context.bot.send_message(job.chat_id, message_text)
+
+
+async def daily_reminder(context: ContextTypes.DEFAULT_TYPE):
+    with NeonConnect(dsn=DB_CONNECTION) as db:
+        chat_ids = db.fetch_chat_ids()
+    for chat_id in chat_ids:
+        context.job_queue.run_once(reminder, when=1, chat_id=chat_id, name=str(chat_id))
 
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -138,7 +140,7 @@ def main():
     application = ApplicationBuilder().token(BOT_TOKEN).build()
     job_queue = application.job_queue
 
-    job_queue.run_daily(reminder, time=datetime.time(hour=8, minute=3))
+    job_queue.run_daily(daily_reminder, time=datetime.time(hour=8, minute=3))
 
     start_handler = CommandHandler('start', start)
     help_handler = CommandHandler('help', start)

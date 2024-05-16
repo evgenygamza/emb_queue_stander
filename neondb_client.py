@@ -1,4 +1,3 @@
-
 import psycopg2.extras
 import psycopg2
 from typing import Literal
@@ -16,7 +15,7 @@ class NeonConnect:
     delete_user_info
 
     """
-    def __init__(self, dsn, chat_id):
+    def __init__(self, dsn, chat_id=None):
         # self.dsn = dsn ??
         self.conn = psycopg2.connect(dsn)
         self.cur = self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -34,7 +33,7 @@ class NeonConnect:
             self.conn.close()
             # print("Disconnected from the database.")
 
-    def fetch_select(self, query: str):
+    def fetch_select(self, query):
         self.cur.execute(query)
         # print(self.cur.description)
         return self.cur.fetchall()
@@ -49,6 +48,10 @@ class NeonConnect:
             return self.fetch_select(f"SELECT {', '.join(cols)} FROM {self.table} WHERE chat_id={self.chat_id};")[0]
         else:
             return self.fetch_select(f"SELECT * FROM {self.table} WHERE chat_id={self.chat_id};")[0]
+
+    def fetch_chat_ids(self):
+        result = self.fetch_select(f"SELECT {self.id} FROM {self.table}")
+        return [item[0] for item in result]
 
     def update(self, **columns: Literal["chat_id", "email", "passw", "position"]):
         if not columns:
