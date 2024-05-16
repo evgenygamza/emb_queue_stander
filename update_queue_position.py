@@ -21,6 +21,7 @@ class Midpass:
         self.chrome_options.add_argument("--disable-gpu")
         self.chrome_options.add_argument("--disable-dev-shm-usage")
         self.driver = webdriver.Remote(command_executor=os.getenv("SELENIUM_URL"), options=self.chrome_options)
+        # self.driver = webdriver.Chrome(options=self.chrome_options)
         self.driver.set_window_size(1024, 868)
         self.driver.implicitly_wait(15)
         self.script = ActionChains(self.driver)
@@ -39,7 +40,7 @@ class Midpass:
         captcha_image_base64 = img_captcha.screenshot_as_base64
         # img_captcha.screenshot("ss.png")
         solver = TwoCaptcha(user_consts.API_KEY)
-        result = solver.normal(captcha_image_base64, hintText="x12345", minLen=6, maxLen = 6)
+        result = solver.normal(captcha_image_base64, hintText="x12345", minLen=6, maxLen=6)
         # print("result: ", result["code"])
         return result["code"]
 
@@ -48,11 +49,15 @@ class Midpass:
 
         # login page
         Select(self.find(*LoginPageLocators.SELECT_COUNTRY)).select_by_visible_text("Грузия")
-        Select(self.find(*LoginPageLocators.SELECT_SERVICE_PROVIDER)).select_by_visible_text(\
+        Select(self.find(*LoginPageLocators.SELECT_SERVICE_PROVIDER)).select_by_visible_text( \
             "Тбилиси - Консульская служба Секции интересов РФ")
 
         self.find(*LoginPageLocators.INPUT_EMAIL).send_keys(mail)
-        self.find(*CaptchaLocators.INPUT_CAPTCHA).send_keys(self.solve_captcha())
+        try:
+            self.find(*CaptchaLocators.INPUT_CAPTCHA).send_keys(self.solve_captcha())
+        except:
+            return False, ("Я не справился с капчой. Давайте попробеум еще раз:\n"
+                           "/queue")
         self.find(*LoginPageLocators.INPUT_PASSWORD).send_keys(password)
 
         btn_login = self.find(*LoginPageLocators.BTN_LOGIN)
@@ -62,20 +67,20 @@ class Midpass:
 
         if self.driver.current_url == urls.INDEX_PAGE:
             return True, "Авторизация прошла успешно"
-        
+
         error_elements = self.driver.find_elements(*LoginPageLocators.LOGIN_ERROR)
-        
+
         if error_elements:
             return False, error_elements[0].text
 
         if self.driver.current_url == urls.BAN_PAGE:
-            return False, "Система решила, что я бот. На почту пришел новый пароль. \n"\
-                            "Пришлите его мне с помощью команды /password \n"\
-                            "и я попытаюсь снова через пару часов"
+            return "banned", "Система решила, что я бот. На почту пришел новый пароль. \n" \
+                          "Пришлите его мне с помощью команды /password \n" \
+                          "и мы попробуем через час еще разок"
 
         return False, "Авторизация не удалась при невыясненных обстоятельствах"
 
-    def go_to_waiting_list_and_check_position(self) -> str:
+    def go_to_waiting_list_and_check_position(self) -> int:
         # main page
         btn_waiting_list = self.find(*MainPageLocators.BTN_WAITING_LIST)
         self.script.move_to_element(btn_waiting_list).click(btn_waiting_list).perform()
@@ -83,12 +88,13 @@ class Midpass:
         # queue page
         position = int(self.find(*QueuePageLocators.CELL_QUANTITY_IN_QUEUE).text.split()[1])
         return position
-    
+
     def update_queue_position(self) -> str:
         checkbox_waiting_list = self.find(*QueuePageLocators.CHKBX_WAITING_LIST)
         btn_confirm_appointment = self.find(*QueuePageLocators.BTN_CONFIRM_APPOINTMENT)
         self.script.move_to_element(checkbox_waiting_list).click(checkbox_waiting_list).perform()
-        self.script.scroll_to_element(btn_confirm_appointment).scroll_by_amount(0, 600).move_to_element(btn_confirm_appointment).perform()
+        self.script.scroll_to_element(btn_confirm_appointment).scroll_by_amount(0, 600).move_to_element(
+            btn_confirm_appointment).perform()
         btn_class = btn_confirm_appointment.get_attribute("class")
         if "l-btn-disabled" in btn_class:
             return "Кнопка подтверждения неактивна. Сегодня уже подтверждено"

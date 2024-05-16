@@ -6,6 +6,7 @@ COPY reminder_bot.py \
     locators.py \
     urls.py \
     update_queue_position.py \
+    neondb_client.py \
     __init__.py \
     requirements.txt \
     /workspace/

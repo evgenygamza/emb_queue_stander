@@ -4,6 +4,7 @@
 /trash
 /chromedriver
 /.tox
+/.idea
 .DS_Store
 user_consts.py
 ss.png
