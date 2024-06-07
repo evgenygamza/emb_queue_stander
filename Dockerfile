@@ -5,7 +5,7 @@ RUN mkdir /workspace
 COPY reminder_bot.py \
     locators.py \
     urls.py \
-    update_queue_position.py \
+    midpass_playwrights.py \
     neondb_client.py \
     __init__.py \
     requirements.txt \
@@ -14,5 +14,8 @@ COPY reminder_bot.py \
 WORKDIR /workspace
 
 RUN pip install -r requirements.txt
+RUN playwright install chromium
+RUN pip install "python-telegram-bot[job-queue]"
+RUN playwright install-deps
 
-CMD ["sleep","infinity"]
+CMD ["python", "reminder_bot.py"]
