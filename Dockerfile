@@ -14,8 +14,7 @@ COPY reminder_bot.py \
 WORKDIR /workspace
 
 RUN pip install -r requirements.txt
-RUN playwright install chromium
-RUN pip install "python-telegram-bot[job-queue]"
 RUN playwright install-deps
+RUN playwright install chromium
 
 CMD ["python", "reminder_bot.py"]
