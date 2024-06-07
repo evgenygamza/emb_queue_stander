@@ -1,16 +1,4 @@
 services:
-  selenium:
-    image: selenium/standalone-chrome:latest
-    restart: unless-stopped
-    ports:
-      - 7900:7900
-      - 4444:4444
-    environment:
-      - SE_NODE_OVERRIDE_MAX_SESSIONS=true 
-      - SE_NODE_SESSION_TIMEOUT=60
-      - SE_ENABLE_BROWSER_LEFTOVERS_CLEANUP=false
-      - SE_VNC_NO_PASSWORD=1
-    shm_size: '2gb'
   app:
     build:
       context: .
@@ -18,10 +6,10 @@ services:
     restart: unless-stopped
     volumes:
       - ./user_consts.py:/workspace/user_consts.py:ro
-    depends_on:
-      selenium:
-        condition: service_started
-        restart: true
-        required: true
-    environment:
-      - SELENIUM_URL=http://selenium:4444/wd/hub
+#    depends_on:
+#      selenium:
+#        condition: service_started
+#        restart: true
+#        required: true
+#    environment:
+#      - SELENIUM_URL=http://selenium:4444/wd/hub

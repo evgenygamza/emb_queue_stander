@@ -3,9 +3,9 @@ import datetime
 
 from telegram import Update
 from telegram.ext import (filters, ApplicationBuilder, ContextTypes, CommandHandler, ConversationHandler,
-                          MessageHandler, CallbackContext)
-from user_consts import BOT_TOKEN, DB_CONNECTION, MAIL, PASSWORD
-from update_queue_position import Midpass
+                          MessageHandler)
+from user_consts import BOT_TOKEN, DB_CONNECTION
+from midpass_playwrights import Midpass
 from neondb_client import NeonConnect
 
 logging.basicConfig(
@@ -14,9 +14,6 @@ logging.basicConfig(
 )
 
 GET_PASSWORD, GET_EMAIL = 0, 1
-
-
-# scheduler = AsyncIOScheduler()
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -44,23 +41,23 @@ async def update_queue_position(update: Update, context: ContextTypes.DEFAULT_TY
     await context.bot.send_message(chat_id=chat_id, text="Захожу в кабинет")
     with NeonConnect(dsn=DB_CONNECTION, chat_id=chat_id) as db_client:
         user_info = db_client.fetch_user_info()
-        script = Midpass()
-        login_status = script.login_private_person(mail=user_info[1], password=user_info[2])
-        await context.bot.send_message(chat_id=chat_id, text=f"{login_status[1]}")
-        if not login_status[0]:
-            await context.bot.send_message(chat_id=chat_id,
-                                           text=f"Авторизация по каким-то причинам не удалась. Давайте попробуем ещё")
-        elif login_status[0] == "banned":
-            context.job_queue.run_once(reminder, when=3600, chat_id=chat_id, name="banned_case")
+        async with Midpass() as script:
+            login_status = await script.login_private_person(mail=user_info[1], password=user_info[2])
+            await context.bot.send_message(chat_id=chat_id, text=f"{login_status[1]}")
+            if not login_status[0]:
+                await context.bot.send_message(chat_id=chat_id,
+                                               text=f"Авторизация по каким-то причинам не удалась. Давайте попробуем ещё")
+            elif login_status[0] == "banned":
+                context.job_queue.run_once(reminder, when=3600, chat_id=chat_id, name="banned_case")
 
-        pstn = script.go_to_waiting_list_and_check_position()
-        await context.bot.send_message(chat_id=chat_id, text=f"Текущее место в очереди: {pstn}")
-        db_client.update(position=pstn)
+            pstn = await script.go_to_waiting_list_and_check_position()
+            await context.bot.send_message(chat_id=chat_id, text=f"Текущее место в очереди: {pstn}")
+            db_client.update(position=pstn)
 
-        if pstn < 100:
-            await context.bot.send_message(chat_id=chat_id, text="Внимание! \n Осталось меньше ста человек")
-        result_message = script.update_queue_position()
-        await context.bot.send_message(chat_id=chat_id, text=result_message)
+            if pstn < 100:
+                await context.bot.send_message(chat_id=chat_id, text="Внимание! \n Осталось меньше ста человек")
+            result_message = await script.update_queue_position()
+            await context.bot.send_message(chat_id=chat_id, text=result_message)
 
 
 async def get_user_position(update: Update, context: ContextTypes.DEFAULT_TYPE):
