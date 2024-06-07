@@ -4,6 +4,7 @@ RUN mkdir /workspace
 
 COPY reminder_bot.py \
     locators.py \
+    user_consts.py \
     urls.py \
     midpass_playwrights.py \
     neondb_client.py \
