@@ -14,7 +14,8 @@ class Midpass:
 
     async def __aenter__(self):
         self.playwright = await async_playwright().start()
-        self.browser = await self.playwright.chromium.launch(headless=True)
+        self.browser = await self.playwright.chromium.launch(headless=False)
+        # self.browser = await self.playwright.chromium.launch(headless=True)
         self.page = await self.browser.new_page()
         await self.page.set_viewport_size({"width": 1024, "height": 868})
         return self
