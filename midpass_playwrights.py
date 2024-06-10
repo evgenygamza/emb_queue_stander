@@ -78,7 +78,6 @@ class Midpass:
         btn_confirm_appointment = self.page.locator("#confirmAppointments")
         btn_class = await btn_confirm_appointment.get_attribute("class")
         if "l-btn-disabled" in btn_class:
-            # return "Кнопка подтверждения неактивна. Сегодня уже подтверждено"
             return messages.inactive
         try:
             await btn_confirm_appointment.click()
