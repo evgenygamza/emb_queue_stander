@@ -4,6 +4,7 @@ from twocaptcha import TwoCaptcha
 import urls
 import base64
 import user_consts
+import messages
 
 
 class Midpass:
@@ -37,7 +38,7 @@ class Midpass:
         # login page
         await self.page.select_option("select[data-bind*='selectedCountry']", label="Грузия")
         await self.page.select_option("select[data-bind*='selectedServiceProvider']",
-                                label="Тбилиси - Консульская служба Секции интересов РФ")
+                                      label="Тбилиси - Консульская служба Секции интересов РФ")
 
         await self.page.fill("#Email", mail)
         try:
@@ -45,40 +46,39 @@ class Midpass:
             captcha_resolution = await self.solve_captcha()
             await self.page.locator("#Captcha").fill(captcha_resolution)
         except:
-            return False, ("Я не справился с капчой. Давайте попробеум еще раз:\n"
-                           "/queue")
+            return False, messages.captcha_fail
         await self.page.locator("#Password").fill(password)
 
         await self.page.get_by_text("Войти").click()
 
         if self.page.url == urls.INDEX_PAGE:
-            return True, "Авторизация прошла успешно"
+            return True, messages.login_success
 
         error_elements = await self.page.query_selector_all("span.field-validation-error")
         if error_elements:
             return False, await error_elements[0].inner_text()
 
         if self.page.url == urls.BAN_PAGE:
-            return "banned", ("Система решила, что я бот. На почту пришел новый пароль. \n"
-                              "Пришлите его мне с помощью команды /password \n"
-                              "и мы попробуем через час еще разок")
+            return "banned", messages.banned
 
-        return False, "Авторизация не удалась при невыясненных обстоятельствах"
+        return False, messages.login_fail
 
     async def go_to_waiting_list_and_check_position(self) -> int:
         # main page
         await self.page.get_by_text("Лист ожидания").click()
         # queue page
-        position_text = await self.page.inner_text("td[field='PlaceInQueueString'] div.datagrid-cell-c1-PlaceInQueueString")
+        position_text = await self.page.inner_text(
+            "td[field='PlaceInQueueString'] div.datagrid-cell-c1-PlaceInQueueString")
         position = int(position_text.split()[1])
         return position
 
     async def update_queue_position(self) -> str:
         await self.page.locator("div.datagrid-cell-check input").check()
-        btn_confirm_appointment = self.page.get_by_text("Подтвердить заявку")
+        btn_confirm_appointment = self.page.locator("#confirmAppointments")
         btn_class = await btn_confirm_appointment.get_attribute("class")
         if "l-btn-disabled" in btn_class:
-            return "Кнопка подтверждения неактивна. Сегодня уже подтверждено"
+            # return "Кнопка подтверждения неактивна. Сегодня уже подтверждено"
+            return messages.inactive
         try:
             await btn_confirm_appointment.click()
             # confirmation window
@@ -87,9 +87,9 @@ class Midpass:
             await self.page.get_by_role("link", name="Подтвердить", exact=True).click()
             await self.page.wait_for_timeout(6000)
             await self.page.get_by_role("link", name="Ок", exact=True).click()
-            return "Заявка подтверждена. До завтра можно не переживать"
+            return messages.update_success
         except:
-            return "Что-то пошло не так. Заявка не подтверждена"
+            return messages.update_fail
         finally:
             await self.page.wait_for_timeout(3000)
 
@@ -106,6 +106,8 @@ async def main():
         finally:
             pass
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(main())
