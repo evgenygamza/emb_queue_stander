@@ -43,7 +43,7 @@ class NeonConnect:
                                     WHERE table_schema = 'public' AND table_name = '{self.table}';")
         return [column[0] for column in columns]
 
-    def fetch_user_info(self, *cols: Literal["chat_id", "email", "passw", "position"]) -> object:
+    def fetch_user_info(self, *cols: Literal["chat_id", "email", "passw", "position"]) -> list:
         if cols:
             return self.fetch_select(f"SELECT {', '.join(cols)} FROM {self.table} WHERE chat_id={self.chat_id};")[0]
         else:

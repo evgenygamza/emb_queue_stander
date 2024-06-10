@@ -3,13 +3,15 @@ FROM python:3.12.3-bookworm
 RUN mkdir /workspace
 
 COPY reminder_bot.py \
-    locators.py \
+#    locators.py \
+    messages.py \
     user_consts.py \
     urls.py \
     midpass_playwrights.py \
     neondb_client.py \
     __init__.py \
     requirements.txt \
+#    .env \
     /workspace/
 
 WORKDIR /workspace
