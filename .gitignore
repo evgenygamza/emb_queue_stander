@@ -5,6 +5,7 @@
 /chromedriver
 /.tox
 /.idea
+.idea
 .DS_Store
 user_consts.py
 ss.png
