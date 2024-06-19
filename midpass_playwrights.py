@@ -47,6 +47,7 @@ class Midpass:
             await self.page.locator("#Captcha").fill(captcha_resolution)
         except:
             return False, messages.captcha_fail
+        
         await self.page.locator("#Password").fill(password)
 
         await self.page.get_by_text("Войти").click()
@@ -63,21 +64,26 @@ class Midpass:
 
         return False, messages.login_fail
 
+      
     async def go_to_waiting_list_and_check_position(self) -> int:
         # main page
         await self.page.get_by_text("Лист ожидания").click()
+        
         # queue page
         position_text = await self.page.inner_text(
             "td[field='PlaceInQueueString'] div.datagrid-cell-c1-PlaceInQueueString")
+
         position = int(position_text.split()[1])
         return position
 
     async def update_queue_position(self) -> str:
         await self.page.locator("div.datagrid-cell-check input").check()
+
         btn_confirm_appointment = self.page.locator("#confirmAppointments")
         btn_class = await btn_confirm_appointment.get_attribute("class")
         if "l-btn-disabled" in btn_class:
             return messages.inactive
+
         try:
             await btn_confirm_appointment.click()
             # confirmation window
@@ -108,5 +114,4 @@ async def main():
 
 if __name__ == "__main__":
     import asyncio
-
     asyncio.run(main())

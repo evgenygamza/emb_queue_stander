@@ -41,11 +41,13 @@ async def update_queue_position(update: Update, context: ContextTypes.DEFAULT_TY
                 context.job_queue.run_once(reminder, when=3600, chat_id=chat_id, name="banned_case")
 
             pstn = await script.go_to_waiting_list_and_check_position()
+            
             await context.bot.send_message(chat_id=chat_id, text=messages.position.replace("$value", str(pstn)))
             db_client.update(position=pstn)
 
             if pstn < 100:
                 await context.bot.send_message(chat_id=chat_id, text=messages.last_hundred)
+
             result_message = await script.update_queue_position()
             await context.bot.send_message(chat_id=chat_id, text=result_message)
 
