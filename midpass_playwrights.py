@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 
 import urls
 import base64
-import user_consts
 import messages
 
 load_dotenv()

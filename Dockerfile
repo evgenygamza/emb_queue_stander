@@ -1,7 +1,5 @@
 FROM python:3.12.3-bookworm
 
-RUN mkdir /workspace
-
 COPY requirements.txt /workspace/
 
 RUN pip install -r workspace/requirements.txt
@@ -18,6 +16,3 @@ COPY reminder_bot.py \
     /workspace/
 
 WORKDIR /workspace
-
-
-CMD ["python", "reminder_bot.py"]
