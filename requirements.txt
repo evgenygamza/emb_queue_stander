@@ -81,3 +81,4 @@ tzlocal==5.2
     # via apscheduler
 urllib3==2.2.1
     # via requests
+python-dotenv
