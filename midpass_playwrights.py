@@ -7,6 +7,11 @@ from playwright.async_api import async_playwright
 from twocaptcha import TwoCaptcha
 from dotenv import load_dotenv
 
+import urls
+import base64
+import user_consts
+import messages
+
 load_dotenv()
 
 API_KEY = os.getenv('API_KEY')

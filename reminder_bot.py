@@ -75,9 +75,7 @@ async def get_new_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     new_passw = update.message.text
     with NeonConnect(dsn=DB_CONNECTION, chat_id=CHAT_ID) as db_client:
         new_passw_from_db = str(db_client.update(passw=new_passw))
-    # await context.bot.send_message(chat_id=CHAT_ID, text=messages.new_password)
     await context.bot.send_message(chat_id=CHAT_ID, text=messages.new_password.replace("$value", new_passw_from_db))
-    # await context.bot.send_message(chat_id=CHAT_ID, text="это плохой пароль")
     return ConversationHandler.END
 
 
