@@ -10,7 +10,7 @@ RUN playwright install chromium
 
 COPY reminder_bot.py \
     messages.py \
-    user_consts.py \
+    .env\
     urls.py \
     midpass_playwrights.py \
     neondb_client.py \

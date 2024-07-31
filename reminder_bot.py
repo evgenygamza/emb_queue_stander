@@ -1,3 +1,4 @@
+import os
 import logging
 import datetime
 import messages
@@ -5,7 +6,7 @@ import messages
 from telegram import Update
 from telegram.ext import (filters, ApplicationBuilder, ContextTypes, CommandHandler, ConversationHandler,
                           MessageHandler)
-from user_consts import BOT_TOKEN, DB_CONNECTION
+from dotenv import load_dotenv
 from midpass_playwrights import Midpass
 from neondb_client import NeonConnect
 
@@ -14,7 +15,11 @@ logging.basicConfig(
     level=logging.INFO
 )
 
+load_dotenv()
+
 GET_PASSWORD, GET_EMAIL = 0, 1
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+DB_CONNECTION = os.getenv('DB_CONNECTION')
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):

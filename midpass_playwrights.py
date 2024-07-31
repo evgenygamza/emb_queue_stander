@@ -1,11 +1,17 @@
-from playwright.async_api import async_playwright
-from twocaptcha import TwoCaptcha
-
+import os
 import urls
 import base64
-import user_consts
 import messages
 
+from playwright.async_api import async_playwright
+from twocaptcha import TwoCaptcha
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_KEY = os.getenv('API_KEY')
+MAIL = os.getenv('MAIL')
+PASSWORD = os.getenv('PASSWORD')
 
 class Midpass:
     def __init__(self) -> None:
@@ -28,7 +34,7 @@ class Midpass:
         img_captcha = await self.page.locator("#imgCaptcha").screenshot()
         await self.page.locator("#imgCaptcha").screenshot(path="ss.png")
         captcha_image_base64 = base64.b64encode(img_captcha).decode()
-        solver = TwoCaptcha(user_consts.API_KEY)
+        solver = TwoCaptcha(API_KEY)
         result = solver.normal(captcha_image_base64, hintText="x12345", minLen=6, maxLen=6)
         return result["code"]
 
@@ -102,7 +108,7 @@ class Midpass:
 async def main():
     async with Midpass() as script:
         try:
-            login = await script.login_private_person(mail=user_consts.MAIL, password=user_consts.PASSWORD)
+            login = await script.login_private_person(mail=MAIL, password=PASSWORD)
             if not login[0]:
                 print(login[1])
                 return

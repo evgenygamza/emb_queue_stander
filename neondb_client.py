@@ -1,8 +1,12 @@
+import os
 import psycopg2.extras
 import psycopg2
 from typing import Literal
-from user_consts import DB_CONNECTION
+from dotenv import load_dotenv
 
+load_dotenv()
+
+DB_CONNECTION = os.getenv('DB_CONNECTION')
 
 class NeonConnect:
     """  # todo
